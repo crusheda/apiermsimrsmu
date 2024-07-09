@@ -20,5 +20,5 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-Route::get('/test1', [App\Http\Controllers\WelcomeController::class, 'index1'])->name('index1');
-Route::get('/test2', [App\Http\Controllers\WelcomeController::class, 'index2'])->name('index2');
+// Route::get('/test1', [App\Http\Controllers\WelcomeController::class, 'index1'])->name('index1');
+// Route::get('/test2', [App\Http\Controllers\WelcomeController::class, 'index2'])->name('index2');

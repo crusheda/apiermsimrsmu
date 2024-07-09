@@ -5,9 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class user2 extends Model
+class rujukan_keluar extends Model
 {
-    protected $connection = 'mysql2';
-    protected $table = 'pegawai';
+    protected $connection = 'db_pendaftaran';
+    protected $table = 'rujukan_keluar';
     use HasFactory;
 }

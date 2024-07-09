@@ -3,22 +3,24 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\user1;
-use App\Models\user2;
+use App\Models\jawaban_konsul;
+use App\Models\rujukan_keluar;
 
 class WelcomeController extends Controller
 {
     function index1() {
-        $show = user1::all();
+        $show = jawaban_konsul::all();
         print_r($show);
         die();
-        return view('pages.test1')->with('list', $show);
+        return response()->json($show, 200);
+        // return view('pages.test1')->with('list', $show);
     }
 
     function index2() {
-        $show = user2::all();
+        $show = rujukan_keluar::all();
         print_r($show);
         die();
-        return view('pages.test2')->with('list', $show);
+        return response()->json($show, 200);
+        // return view('pages.test2')->with('list', $show);
     }
 }
