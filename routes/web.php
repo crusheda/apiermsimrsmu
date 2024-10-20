@@ -13,12 +13,13 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
 Auth::routes();
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+// Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/surkon', [App\Http\Controllers\RegOnline\surkonController::class, 'index'])->name('surkon.index');
 // Route::get('/test1', [App\Http\Controllers\WelcomeController::class, 'index1'])->name('index1');
 // Route::get('/test2', [App\Http\Controllers\WelcomeController::class, 'index2'])->name('index2');

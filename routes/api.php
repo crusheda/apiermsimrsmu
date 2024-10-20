@@ -22,3 +22,4 @@ Route::get('/test1', [App\Http\Controllers\WelcomeController::class, 'index1'])-
 Route::get('/test2', [App\Http\Controllers\WelcomeController::class, 'index2'])->name('index2');
 
 Route::get('/getpasien/{rm}', [App\Http\Controllers\Pasien\PasienController::class, 'getPasien'])->name('api.getPasien');
+Route::get('/surkon/table', [App\Http\Controllers\RegOnline\surkonController::class, 'table'])->name('surkon.table');
