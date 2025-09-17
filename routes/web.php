@@ -17,9 +17,15 @@ use Illuminate\Support\Facades\Route;
 //     return view('welcome');
 // });
 
-Auth::routes();
+// INITIALIZATION
+// use App\Http\Controllers\DashboardController;
 
-// Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-Route::get('/surkon', [App\Http\Controllers\RegOnline\surkonController::class, 'index'])->name('surkon.index');
-// Route::get('/test1', [App\Http\Controllers\WelcomeController::class, 'index1'])->name('index1');
-// Route::get('/test2', [App\Http\Controllers\WelcomeController::class, 'index2'])->name('index2');
+// Auth::routes();
+Auth::routes(['register' => false]); // Cannot Access /register
+Route::group(['middleware' => ['web', 'auth']], function() {
+    // Route::get('/surkon', [App\Http\Controllers\RegOnline\surkonController::class, 'index'])->name('surkon.index');
+    // Route::get('/test1', [App\Http\Controllers\WelcomeController::class, 'index1'])->name('index1');
+    // Route::get('/test2', [App\Http\Controllers\WelcomeController::class, 'index2'])->name('indx2');
+
+});
+

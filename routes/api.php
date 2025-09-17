@@ -18,8 +18,17 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('/test1', [App\Http\Controllers\WelcomeController::class, 'index1'])->name('index1');
-Route::get('/test2', [App\Http\Controllers\WelcomeController::class, 'index2'])->name('index2');
+// Route::group(['middleware' => ['web', 'auth']], function() {
+// });
 
-Route::get('/getpasien/{rm}', [App\Http\Controllers\Pasien\PasienController::class, 'getPasien'])->name('api.getPasien');
-Route::get('/surkon/table', [App\Http\Controllers\RegOnline\surkonController::class, 'table'])->name('surkon.table');
+//-----------------------------------------------------------------    A  P  I    -----------------------------------------------------------------
+Route::middleware('auth.custom')->group(function () { // Authorization (Auth Type = Basic Auth) ==> Username & Password SIMGOS
+    Route::get('/informasi/ruangan', [App\Http\Controllers\Informasi\RuanganController::class, 'getRuangan'])->name('api.informasi.getRuangan');
+    
+});
+
+// Route::get('/test1', [App\Http\Controllers\WelcomeController::class, 'index1'])->name('index1');
+// Route::get('/test2', [App\Http\Controllers\WelcomeController::class, 'index2'])->name('index2');
+
+// Route::get('/getpasien/{rm}', [App\Http\Controllers\Pasien\PasienController::class, 'getPasien'])->name('api.getPasien');
+// Route::get('/surkon/table', [App\Http\Controllers\RegOnline\surkonController::class, 'table'])->name('surkon.table');
