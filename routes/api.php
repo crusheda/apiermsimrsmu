@@ -24,7 +24,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //-----------------------------------------------------------------    A  P  I    -----------------------------------------------------------------
 Route::middleware('auth.custom')->group(function () { // Authorization (Auth Type = Basic Auth) ==> Username & Password SIMGOS
     Route::get('/informasi/ruangan', [App\Http\Controllers\Informasi\RuanganController::class, 'getRuangan'])->name('api.informasi.getRuangan');
-    
+    Route::get('/antrean/poli/display', [App\Http\Controllers\Antrean\AntreanController::class, 'getAntreanPoli'])->name('api.informasi.getAntreanPoli');
+
 });
 
 // Route::get('/test1', [App\Http\Controllers\WelcomeController::class, 'index1'])->name('index1');
