@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Services\WhatsappService;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,3 +30,7 @@ Route::group(['middleware' => ['web', 'auth']], function() {
 
 });
 
+Route::get('/wa-test', function (WhatsappService $wa) {
+    $response = $wa->sendMessage('6281232545545', 'Halo, ini pesan tes dari Laravel!');
+    return $response;
+});

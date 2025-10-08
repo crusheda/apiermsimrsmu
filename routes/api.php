@@ -2,7 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\Whatsapp\JadwalDokterController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -28,6 +28,39 @@ Route::middleware('auth.custom')->group(function () { // Authorization (Auth Typ
 
 });
 
+Route::get('/whatsapp/test', function () {
+    $token = env('WHATSAPP_TOKEN');
+    $phoneId = env('WHATSAPP_PHONE_ID');
+    $to = '6281232545545'; // nomor kamu sendiri
+
+    $response = Http::withToken($token)->post("https://graph.facebook.com/v20.0/{$phoneId}/messages", [
+        'messaging_product' => 'whatsapp',
+        'to' => $to,
+        'type' => 'text',
+        'text' => [
+            'body' => 'Halo Faisal! Ini pesan uji coba dari WhatsApp API Laravel 🚀'
+        ],
+    ]);
+
+    return $response->json();
+});
+
+// ✅ Endpoint utama untuk webhook WhatsApp
+Route::post('/whatsapp/webhook', [JadwalDokterController::class, 'handle']);
+
+// ✅ Optional: Untuk verifikasi webhook dari Meta (GET)
+Route::get('/whatsapp/webhook', function () {
+    $verify_token = env('WHATSAPP_VERIFY_TOKEN');
+    $mode = request('hub_mode');
+    $token = request('hub_verify_token');
+    $challenge = request('hub_challenge');
+
+    if ($mode === 'subscribe' && $token === $verify_token) {
+        return response($challenge, 200);
+    }
+
+    return response('Forbidden', 403);
+});
 // Route::get('/test1', [App\Http\Controllers\WelcomeController::class, 'index1'])->name('index1');
 // Route::get('/test2', [App\Http\Controllers\WelcomeController::class, 'index2'])->name('index2');
 
