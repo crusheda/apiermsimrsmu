@@ -25,7 +25,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::middleware('auth.custom')->group(function () { // Authorization (Auth Type = Basic Auth) ==> Username & Password SIMGOS
     Route::get('/informasi/ruangan', [App\Http\Controllers\Informasi\RuanganController::class, 'getRuangan'])->name('api.informasi.getRuangan');
     Route::get('/antrean/poli/display', [App\Http\Controllers\Antrean\AntreanController::class, 'getAntreanPoli'])->name('api.informasi.getAntreanPoli');
-
+    Route::get('/data/master/dokter', [App\Http\Controllers\LIS\LISController::class, 'masterDokter'])->name('api.informasi.masterDokter');
+    Route::get('/data/master/tindakan', [App\Http\Controllers\LIS\LISController::class, 'masterTindakan'])->name('api.informasi.masterTindakan');
+    Route::get('/data/order/lab', [App\Http\Controllers\LIS\LISController::class, 'getOrderLab'])->name('api.informasi.getOrderLab');
+    Route::post('/data/lab/insert', [App\Http\Controllers\LIS\LISController::class, 'insertHasilTestBulk'])->name('api.informasi.insertHasilTestBulk');
 });
 
 Route::get('/whatsapp/test', function () {
