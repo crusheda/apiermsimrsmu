@@ -29,6 +29,7 @@ Route::middleware('auth.custom')->group(function () { // Authorization (Auth Typ
     Route::get('/data/master/tindakan', [App\Http\Controllers\LIS\LISController::class, 'masterTindakan'])->name('api.informasi.masterTindakan');
     Route::get('/data/order/lab', [App\Http\Controllers\LIS\LISController::class, 'getOrderLab'])->name('api.informasi.getOrderLab');
     Route::post('/data/lab/insert', [App\Http\Controllers\LIS\LISController::class, 'insertHasilTestBulk'])->name('api.informasi.insertHasilTestBulk');
+    Route::get('/data/order/radiologi', [App\Http\Controllers\PACS\PACSController::class, 'getOrderRad'])->name('api.informasi.getOrderRad');
 });
 
 Route::get('/whatsapp/test', function () {
