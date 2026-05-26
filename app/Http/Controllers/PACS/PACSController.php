@@ -12,10 +12,27 @@ use Auth, Storage;
 
 class PACSController extends Controller
 {
-    public function getOrderRad()
+    public function getOrderRad(Request $request)
     {
-        $data = DB::table('pendaftaran.kunjungan as pk')
-            ->select([
+        if ($request->filled('norm')) {
+            if (!is_numeric($request->norm)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'NORM harus berupa angka',
+                    'data' => null
+                ], 400);
+            } else if (strlen($request->norm) > 8) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'NORM tidak boleh lebih dari 8 digit',
+                    'data' => null
+                ], 400);
+            }
+        }
+
+        $query = DB::table('pendaftaran.kunjungan as pk');
+
+        $query->select([
                 // 'pk.NOMOR as NOMOR',
                 'pk.MASUK as MASUK',
                 'pp.NORM as NORM',
@@ -38,9 +55,9 @@ class PACSController extends Controller
                 'sse.id as ID_SATUSEHAT_ENCOUNTER',
             ])
 
-            ->leftJoin('pendaftaran.pendaftaran as pp', 'pp.NOMOR', '=', 'pk.NOPEN')
+            ->join('pendaftaran.pendaftaran as pp', 'pp.NOMOR', '=', 'pk.NOPEN')
 
-            ->leftJoin('pendaftaran.tujuan_pasien as tp', 'tp.NOPEN', '=', 'pp.NOMOR')
+            ->join('pendaftaran.tujuan_pasien as tp', 'tp.NOPEN', '=', 'pp.NOMOR')
 
             ->leftJoin('master.dokter as dok', 'tp.DOKTER', '=', 'dok.ID')
 
@@ -87,11 +104,17 @@ class PACSController extends Controller
             ->whereBetween('pk.MASUK', [
                 now()->subMonth()->startOfMonth(),
                 now()->endOfMonth()
-            ])
+            ]);
 
-            ->orderByDesc('pk.MASUK')
+        if ($request->filled('norm')) {
+            $query->where('pp.NORM', $request->norm);
+        }
 
-            ->get();
+        if ($request->filled('tgl')) {
+            $query->whereDate('pk.MASUK', $request->tgl);
+        }
+
+        $data = $query->orderByDesc('pk.MASUK')->get();
 
         return response()->json([
             'success' => true,
