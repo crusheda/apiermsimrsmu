@@ -99,12 +99,12 @@ class PACSController extends Controller
             ->leftJoin('kemkes-ihs.encounter as sse', 'sse.refId', '=', 'pp.NOMOR')
 
             ->where('pk.RUANGAN', 'like', '1020501%')
-            ->whereIn('pk.STATUS', [1, 2])
+            ->whereIn('pk.STATUS', [1, 2]);
 
-            ->whereBetween('pk.MASUK', [
-                now()->subMonth()->startOfMonth(),
-                now()->endOfMonth()
-            ]);
+            // ->whereBetween('pk.MASUK', [
+            //     now()->subMonth()->startOfMonth(),
+            //     now()->endOfMonth()
+            // ])
 
         if ($request->filled('norm')) {
             $query->where('pp.NORM', $request->norm);
@@ -112,6 +112,11 @@ class PACSController extends Controller
 
         if ($request->filled('tgl')) {
             $query->whereDate('pk.MASUK', $request->tgl);
+        } else {
+            $query->whereBetween('pk.MASUK', [
+                now()->subMonth()->startOfMonth(),
+                now()->endOfMonth()
+            ]);
         }
 
         $data = $query->orderByDesc('pk.MASUK')->get();
