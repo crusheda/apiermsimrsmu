@@ -53,6 +53,16 @@ class PACSController extends Controller
 
                 'ssp.id as ID_SATUSEHAT_PATIENT',
                 'sse.id as ID_SATUSEHAT_ENCOUNTER',
+                'ssr.id as ID_SATUSEHAT_SERVICE_REQUEST',
+
+                DB::raw("
+                    JSON_UNQUOTE(
+                        JSON_EXTRACT(ssr.identifier, '$[0].value')
+                    ) as ACCESSION_NUMBER
+                "),
+                // "NOMOR_SERVICE_REQUEST": "24111300345",
+                    // contoh NORM = 113320
+                    // id service_request : 8e4a8463-3209-4633-a006-5a28133914ce
             ])
 
             ->join('pendaftaran.pendaftaran as pp', 'pp.NOMOR', '=', 'pk.NOPEN')
@@ -97,6 +107,26 @@ class PACSController extends Controller
             })
 
             ->leftJoin('kemkes-ihs.encounter as sse', 'sse.refId', '=', 'pp.NOMOR')
+
+            ->leftJoin('kemkes-ihs.service_request as ssr', function ($join) {
+                $join->on(
+                    DB::raw("
+                        REPLACE(
+                            JSON_UNQUOTE(JSON_EXTRACT(ssr.encounter, '$.reference')),
+                            'Encounter/',
+                            ''
+                        )
+                    "),
+                    '=',
+                    'sse.id'
+                );
+
+                $join->whereRaw("
+                    JSON_UNQUOTE(
+                        JSON_EXTRACT(ssr.category, '$[0].coding[0].display')
+                    ) = 'Imaging'
+                ");
+            })
 
             ->where('pk.RUANGAN', 'like', '1020501%')
             ->whereIn('pk.STATUS', [1, 2]);
