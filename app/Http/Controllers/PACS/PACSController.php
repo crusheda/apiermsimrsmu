@@ -48,8 +48,26 @@ class PACSController extends Controller
                 'ap.NIP as KODE_DOKTER_PERUJUK',
                 DB::raw('master.getNamaLengkapPegawai(ap.NIP) as DOKTER_PERUJUK'),
 
-                'dok.NIP as KODE_DOKTER_RADIOLOGI',
-                DB::raw('master.getNamaLengkapPegawai(dok.NIP) as DOKTER_RADIOLOGI'),
+                // 'dok.NIP as KODE_DOKTER_RADIOLOGI',
+                // DB::raw('master.getNamaLengkapPegawai(dok.NIP) as DOKTER_RADIOLOGI'),
+
+                DB::raw("
+                    CASE
+                        WHEN dok.ID IN (17,18)
+                            THEN dok.NIP
+                        ELSE COALESCE(dok2.NIP, dok.NIP)
+                    END as KODE_DOKTER_RADIOLOGI
+                "),
+
+                DB::raw("
+                    master.getNamaLengkapPegawai(
+                        CASE
+                            WHEN dok.ID IN (17,18)
+                                THEN dok.NIP
+                            ELSE COALESCE(dok2.NIP, dok.NIP)
+                        END
+                    ) as DOKTER_RADIOLOGI
+                "),
 
                 'ssp.id as ID_SATUSEHAT_PATIENT',
                 'sse.id as ID_SATUSEHAT_ENCOUNTER',
@@ -92,12 +110,24 @@ class PACSController extends Controller
                      ->where('lor.STATUS', '<>', 0);
             })
 
+            ->leftJoin('layanan.order_detil_rad as odr', function ($join) {
+                $join->on('odr.ORDER_ID', '=', 'lor.NOMOR')
+                     ->where('odr.STATUS', '<>', 0);
+            })
+
+            ->leftJoin('layanan.hasil_rad as hr', function ($join) {
+                $join->on('hr.TINDAKAN_MEDIS', '=', 'odr.REF')
+                     ->where('odr.STATUS', '<>', 0);
+            })
+
+            ->leftJoin('master.dokter as dok2', 'hr.DOKTER', '=', 'dok2.ID')
+
             ->join('pendaftaran.kunjungan as k', function ($join) {
                 $join->on('k.NOMOR', '=', 'lor.KUNJUNGAN')
                      ->where('k.STATUS', '<>', 0);
             })
 
-            ->leftJoin('aplikasi.pengguna as ap', 'ap.ID', '=', 'k.DPJP')
+            ->leftJoin('master.dokter as ap', 'ap.ID', '=', 'k.DPJP')
 
             ->leftJoin('kemkes-ihs.patient as ssp', function ($join) {
                 $join->on('ssp.nik', '=', 'kip.NOMOR')

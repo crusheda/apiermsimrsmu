@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Whatsapp\JadwalDokterController;
+use App\Http\Controllers\BPJS\IcareController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -65,6 +66,7 @@ Route::get('/whatsapp/webhook', function () {
 
     return response('Forbidden', 403);
 });
+
 // Route::get('/test1', [App\Http\Controllers\WelcomeController::class, 'index1'])->name('index1');
 // Route::get('/test2', [App\Http\Controllers\WelcomeController::class, 'index2'])->name('index2');
 
