@@ -48,26 +48,26 @@ class PACSController extends Controller
                 'ap.NIP as KODE_DOKTER_PERUJUK',
                 DB::raw('master.getNamaLengkapPegawai(ap.NIP) as DOKTER_PERUJUK'),
 
-                // 'dok.NIP as KODE_DOKTER_RADIOLOGI',
-                // DB::raw('master.getNamaLengkapPegawai(dok.NIP) as DOKTER_RADIOLOGI'),
+                'dok2.NIP as KODE_DOKTER_RADIOLOGI',
+                DB::raw('master.getNamaLengkapPegawai(dok2.NIP) as DOKTER_RADIOLOGI'),
 
-                DB::raw("
-                    CASE
-                        WHEN dok.ID IN (17,18)
-                            THEN dok.NIP
-                        ELSE COALESCE(dok2.NIP, dok.NIP)
-                    END as KODE_DOKTER_RADIOLOGI
-                "),
+                // DB::raw("
+                //     CASE
+                //         WHEN dok.ID IN (17,18)
+                //             THEN dok.NIP
+                //         ELSE COALESCE(dok2.NIP, dok.NIP)
+                //     END as KODE_DOKTER_RADIOLOGI
+                // "),
 
-                DB::raw("
-                    master.getNamaLengkapPegawai(
-                        CASE
-                            WHEN dok.ID IN (17,18)
-                                THEN dok.NIP
-                            ELSE COALESCE(dok2.NIP, dok.NIP)
-                        END
-                    ) as DOKTER_RADIOLOGI
-                "),
+                // DB::raw("
+                //     master.getNamaLengkapPegawai(
+                //         CASE
+                //             WHEN dok.ID IN (17,18)
+                //                 THEN dok.NIP
+                //             ELSE COALESCE(dok2.NIP, dok.NIP)
+                //         END
+                //     ) as DOKTER_RADIOLOGI
+                // "),
 
                 'ssp.id as ID_SATUSEHAT_PATIENT',
                 'sse.id as ID_SATUSEHAT_ENCOUNTER',
