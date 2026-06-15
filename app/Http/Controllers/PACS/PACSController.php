@@ -115,9 +115,14 @@ class PACSController extends Controller
                      ->where('odr.STATUS', '<>', 0);
             })
 
+            ->leftJoin('layanan.tindakan_medis as tm2', function ($join) {
+                $join->on('tm2.ID', '=', 'odr.REF')
+                     ->where('tm2.STATUS', '<>', 0);
+            })
+
             ->leftJoin('layanan.hasil_rad as hr', function ($join) {
-                $join->on('hr.TINDAKAN_MEDIS', '=', 'odr.REF')
-                     ->where('odr.STATUS', '<>', 0);
+                $join->on('hr.TINDAKAN_MEDIS', '=', 'tm2.ID')
+                     ->where('hr.STATUS', '<>', 0);
             })
 
             ->leftJoin('master.dokter as dok2', 'hr.DOKTER', '=', 'dok2.ID')
