@@ -145,15 +145,9 @@ class PACSController extends Controller
 
             ->leftJoin('kemkes-ihs.service_request as ssr', function ($join) {
                 $join->on(
-                    DB::raw("
-                        REPLACE(
-                            JSON_UNQUOTE(JSON_EXTRACT(ssr.encounter, '$.reference')),
-                            'Encounter/',
-                            ''
-                        )
-                    "),
+                    'ssr.nopen',
                     '=',
-                    'sse.id'
+                    DB::raw('COALESCE(sse.refId, pp.NOMOR)')
                 );
 
                 $join->whereRaw("
@@ -162,6 +156,26 @@ class PACSController extends Controller
                     ) = 'Imaging'
                 ");
             })
+
+            // ->leftJoin('kemkes-ihs.service_request as ssr', function ($join) {
+            //     $join->on(
+            //         DB::raw("
+            //             REPLACE(
+            //                 JSON_UNQUOTE(JSON_EXTRACT(ssr.encounter, '$.reference')),
+            //                 'Encounter/',
+            //                 ''
+            //             )
+            //         "),
+            //         '=',
+            //         'sse.id'
+            //     );
+
+            //     $join->whereRaw("
+            //         JSON_UNQUOTE(
+            //             JSON_EXTRACT(ssr.category, '$[0].coding[0].display')
+            //         ) = 'Imaging'
+            //     ");
+            // })
 
             ->where('pk.RUANGAN', 'like', '1020501%')
             ->whereIn('pk.STATUS', [1, 2]);
