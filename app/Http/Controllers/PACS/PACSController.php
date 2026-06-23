@@ -32,7 +32,7 @@ class PACSController extends Controller
 
         $query = DB::table('pendaftaran.kunjungan as pk');
 
-        $query->select([
+        $query->distinct()->select([
                 // 'pk.NOMOR as NOMOR',
                 'pk.MASUK as MASUK',
                 'pp.NORM as NORM',
@@ -42,6 +42,7 @@ class PACSController extends Controller
                 'p.TANGGAL_LAHIR as TANGGAL_LAHIR',
                 'r.DESKRIPSI as JENIS_KELAMIN',
 
+                'tm.ID as ID_PEMERIKSAAN_RADIOLOGI',
                 'tm.TINDAKAN as KODE_PEMERIKSAAN_RADIOLOGI',
                 't.NAMA as NAMA_PEMERIKSAAN_RADIOLOGI',
 
