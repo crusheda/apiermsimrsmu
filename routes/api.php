@@ -15,6 +15,9 @@ use App\Http\Controllers\BPJS\IcareController;
 |
 */
 
+use \App\Http\Controllers\PACS\PACSController;
+use \App\Http\Controllers\Master\AssuranceController;
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -30,7 +33,10 @@ Route::middleware('auth.custom')->group(function () { // Authorization (Auth Typ
     Route::get('/data/master/tindakan', [App\Http\Controllers\LIS\LISController::class, 'masterTindakan'])->name('api.informasi.masterTindakan');
     Route::get('/data/order/lab', [App\Http\Controllers\LIS\LISController::class, 'getOrderLab'])->name('api.informasi.getOrderLab');
     Route::post('/data/lab/insert', [App\Http\Controllers\LIS\LISController::class, 'insertHasilTestBulk'])->name('api.informasi.insertHasilTestBulk');
-    Route::get('/data/order/radiologi', [App\Http\Controllers\PACS\PACSController::class, 'getOrderRad'])->name('api.informasi.getOrderRad');
+
+    // PACS
+    Route::get('/data/order/radiologi', [PACSController::class, 'getOrderRad']); // TO GET ORDER PACS RAD
+    Route::get('/data/master/assurance', [AssuranceController::class, 'getAssurance']); // TO GET ASURANCE LIST
 });
 
 Route::get('/whatsapp/test', function () {
