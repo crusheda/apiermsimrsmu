@@ -17,7 +17,7 @@ class AssuranceController extends Controller
         $data = DB::table('master.referensi as ref')
                     ->select('ID','DESKRIPSI','STATUS')
                     ->where('JENIS',10)
-                    ->where('STATUS',1)
+                    // ->where('STATUS',1)
                     ->orderBy('ID','ASC')
                     ->get();
 

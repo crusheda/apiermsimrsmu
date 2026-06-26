@@ -4,6 +4,7 @@ namespace App\Http\Controllers\PACS;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -162,6 +163,86 @@ class PACSController extends Controller
             'success' => true,
             'message' => 'Data radiologi berhasil diambil',
             'data' => $data
+        ], 200);
+    }
+
+    public function getHasilRad(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'acsn' => [
+                'required',
+                'digits:11'
+            ]
+        ], [
+            'acsn.required' => 'Accession Number wajib terisi',
+            'acsn.digits' => 'Accession Number harus 11 digit',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+                'data' => null
+            ], 400);
+        }
+
+        $query = DB::table('layanan.hasil_rad as hr');
+
+        $query->select([
+                'hr.TINDAKAN_MEDIS as accession_number',
+                'pp.NORM as no_rm',
+                DB::raw('master.getNamaLengkap(pp.NORM) AS nama_pasien'),
+                DB::raw('DATE(p.TANGGAL_LAHIR) as tgl_lahir_pasien'),
+                DB::raw('master.getCariUmur(pp.TANGGAL,p.TANGGAL_LAHIR) AS umur_pasien'),
+                DB::raw('master.getNamaLengkapPegawai(dr.NIP) AS nama_dokter'),
+                DB::raw('master.getNamaLengkapPegawai(pe.NIP) AS nama_user'),
+                'hr.KLINIS as expertise_klinis',
+                'hr.KESAN as expertise_kesan',
+                'hr.USUL as expertise_usul',
+                'hr.BTK as expertise_btk',
+                'hr.HASIL as expertise_hasil',
+                'hr.KRITIS as expertise_kritis',
+            ])
+
+            ->join('layanan.tindakan_medis as tm', function ($join) {
+                $join->on('tm.ID', '=', 'hr.TINDAKAN_MEDIS')
+                    ->where('tm.STATUS', '<>', 0);
+            })
+
+            ->join('pendaftaran.kunjungan as pk', function ($join) {
+                $join->on('pk.NOMOR', '=', 'tm.KUNJUNGAN')
+                    ->where('pk.STATUS', '<>', 0);
+            })
+
+            ->join('pendaftaran.pendaftaran as pp', function ($join) {
+                $join->on('pp.NOMOR', '=', 'pk.NOPEN')
+                    ->where('pp.STATUS', '<>', 0);
+            })
+
+            ->leftJoin('master.dokter as dr', 'hr.DOKTER', '=', 'dr.ID')
+
+            ->leftJoin('aplikasi.pengguna as pe', 'pe.ID', '=', 'hr.OLEH')
+
+            ->leftJoin('master.pasien as p', 'p.NORM', '=', 'pp.NORM')
+
+            ->whereIn('hr.STATUS', [1, 2])
+
+            ->where('hr.TINDAKAN_MEDIS', $request->acsn);
+
+        $data = $query->orderByDesc('hr.TANGGAL')->first();
+
+        if ($data) {
+            return response()->json([
+                'success' => true,
+                'message' => "Data Hasil Radiologi berhasil diambil",
+                'data' => $data
+            ], 200);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => "Data Hasil Radiologi gagal diambil / Belum dimasukkan",
+                'data' => null
+            ], 404);
+        }
     }
 }

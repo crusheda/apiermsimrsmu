@@ -35,6 +35,7 @@ Route::middleware('auth.custom')->group(function () { // Authorization (Auth Typ
     Route::post('/data/lab/insert', [App\Http\Controllers\LIS\LISController::class, 'insertHasilTestBulk'])->name('api.informasi.insertHasilTestBulk');
 
     // PACS
+    Route::get('/data/hasil/radiologi', [PACSController::class, 'getHasilRad']); // TO GET ORDER PACS RAD
     Route::get('/data/order/radiologi', [PACSController::class, 'getOrderRad']); // TO GET ORDER PACS RAD
     Route::get('/data/master/assurance', [AssuranceController::class, 'getAssurance']); // TO GET ASURANCE LIST
 });
