@@ -350,114 +350,409 @@ class LISController extends Controller
     //     }
     // }
 
-    function insertHasilTestBulk(Request $request)
-    {
-        // Logging request untuk debugging
-        \Log::info('Request masuk', $request->all());
+    // function insertHasilTestBulk(Request $request)
+    // {
+    //     // Logging request untuk debugging
+    //     \Log::info('Request masuk', $request->all());
 
-        // Validasi data dasar
+    //     // Validasi data dasar
+    //     $request->validate([
+    //         'no_lab'     => 'required',
+    //         'hasil_list' => 'required|array|min:1',
+    //         'hasil_list.*.parameter_id' => 'required',
+    //         'hasil_list.*.hasil'        => 'required',
+    //     ]);
+
+    //     DB::beginTransaction();
+    //     try {
+    //         // Ambil tindakan medis jika ada, tapi jangan gagal kalau tidak ditemukan
+    //         $tindakanMedis = null;
+
+    //         if ($request->has('no_lab')) {
+    //             $tindakanMedis = DB::selectOne("
+    //                 SELECT tm.ID
+    //                 FROM layanan.order_lab ol
+    //                 JOIN pendaftaran.kunjungan k ON k.REF = ol.NOMOR
+    //                 JOIN layanan.tindakan_medis tm ON tm.KUNJUNGAN = k.NOMOR
+    //                 WHERE ol.NOMOR = ?
+    //                 AND ol.`STATUS` != 0
+    //                 AND tm.`STATUS` != 0
+    //                 LIMIT 1
+    //             ", [
+    //                 $request->no_lab
+    //             ]);
+    //         }
+
+    //         $lastRow = DB::table('layanan.hasil_lab')
+    //                     ->select('ID')
+    //                     ->orderBy('ID', 'DESC')
+    //                     ->first();
+
+    //         $lastId = $lastRow ? $lastRow->ID : null;  // ambil properti ID
+    //         $newId = $lastId ? (string)((int)$lastId + 1) : '1';
+    //         $idCounter = (int)$newId;
+
+    //         // Jika tidak ditemukan, tetap buat dummy ID untuk testing
+    //         $tindakanId = $tindakanMedis->ID;
+
+    //         $insertData = [];
+    //         foreach ($request->hasil_list as $row) {
+    //             $insertData[] = [
+    //                 'id'                 => (string)$idCounter,
+    //                 'tindakan_medis'     => $tindakanId,
+    //                 'parameter_tindakan' => $row['parameter_id'],
+    //                 'hasil'              => $row['hasil'],
+    //                 'nilai_normal'       => $row['nilai_normal'] ?? null,
+    //                 'satuan'             => $row['satuan'] ?? null,
+    //                 'keterangan'         => $row['keterangan'] ?? null,
+    //                 'oleh'               => 14,
+    //             ];
+    //             $idCounter++;
+    //         }
+
+    //         // Bulk insert
+    //         $values = [];
+    //         $bindings = [];
+    //         foreach ($insertData as $d) {
+    //             $values[] = "(?, ?, ?, NOW(), ?, ?, ?, ?, ?, 0, 1)";
+    //             $bindings[] = $d['id'];
+    //             $bindings[] = $d['tindakan_medis'];
+    //             $bindings[] = $d['parameter_tindakan'];
+    //             $bindings[] = $d['hasil'];
+    //             $bindings[] = $d['nilai_normal'];
+    //             $bindings[] = $d['satuan'];
+    //             $bindings[] = $d['keterangan'];
+    //             $bindings[] = $d['oleh'];
+    //         }
+
+    //         DB::insert("
+    //             INSERT INTO layanan.hasil_lab
+    //             (
+    //                 ID,
+    //                 TINDAKAN_MEDIS,
+    //                 PARAMETER_TINDAKAN,
+    //                 TANGGAL,
+    //                 HASIL,
+    //                 NILAI_NORMAL,
+    //                 SATUAN,
+    //                 KETERANGAN,
+    //                 OLEH,
+    //                 OTOMATIS,
+    //                 STATUS
+    //             )
+    //             VALUES " . implode(',', $values),
+    //             $bindings
+    //         );
+
+    //         DB::commit();
+
+    //         return response()->json([
+    //             'message'  => 'Ok',
+    //             'inserted' => count($insertData),
+    //             'status'   => 200,
+    //             'data'     => $insertData, // optional untuk debugging
+    //         ]);
+
+    //     } catch (\Throwable $e) {
+    //         DB::rollBack();
+    //         return response()->json([
+    //             'message' => 'Insert gagal',
+    //             'error'   => $e->getMessage(),
+    //             'status'  => 500
+    //         ], 500);
+    //     }
+    // }
+
+    public function insertHasilTestBulk(Request $request)
+    {
+        // =========================================================
+        // LOG REQUEST
+        // =========================================================
+        \Log::info('Request masuk insertHasilTestBulk', $request->all());
+
+
+        // =========================================================
+        // VALIDASI
+        // =========================================================
         $request->validate([
-            'no_lab'     => 'required',
+            'no_lab' => 'required|string',
+
             'hasil_list' => 'required|array|min:1',
-            'hasil_list.*.parameter_id' => 'required',
-            'hasil_list.*.hasil'        => 'required',
+
+            'hasil_list.*.tindakan_medis' => 'required|string',
+
+            'hasil_list.*.parameter_id' => 'required|integer',
+
+            'hasil_list.*.hasil' => 'required|string',
+
+            'hasil_list.*.nilai_normal' => 'nullable|string',
+
+            'hasil_list.*.satuan' => 'nullable|string',
+
+            'hasil_list.*.keterangan' => 'nullable|string',
         ]);
 
+
         DB::beginTransaction();
+
         try {
-            // Ambil tindakan medis jika ada, tapi jangan gagal kalau tidak ditemukan
-            $tindakanMedis = null;
 
-            if ($request->has('no_lab')) {
-                $tindakanMedis = DB::selectOne("
-                    SELECT tm.ID
-                    FROM layanan.order_lab ol
-                    JOIN pendaftaran.kunjungan k ON k.REF = ol.NOMOR
-                    JOIN layanan.tindakan_medis tm ON tm.KUNJUNGAN = k.NOMOR
-                    WHERE tm.ID = ?
-                    AND tm.`STATUS` != 0
-                    LIMIT 1
-                ", [
-                    $request->no_lab
-                ]);
+            // =====================================================
+            // 1. VALIDASI NO LAB
+            // =====================================================
+            $orderLab = DB::table('layanan.order_lab')
+                ->where('NOMOR', $request->no_lab)
+                ->where('STATUS', '!=', 0)
+                ->first();
+
+            if (!$orderLab) {
+                throw new \Exception(
+                    'Order lab dengan No Lab '
+                    . $request->no_lab
+                    . ' tidak ditemukan atau sudah tidak aktif.'
+                );
             }
 
-            $lastRow = DB::table('layanan.hasil_lab')
-                        ->select('ID')
-                        ->orderBy('ID', 'DESC')
-                        ->first();
 
-            $lastId = $lastRow ? $lastRow->ID : null;  // ambil properti ID
-            $newId = $lastId ? (string)((int)$lastId + 1) : '1';
-            $idCounter = (int)$newId;
+            // =====================================================
+            // 2. AMBIL SEMUA TINDAKAN MEDIS YANG VALID
+            //    UNTUK NO LAB TERSEBUT
+            // =====================================================
+            $tindakanMedisList = DB::select("
+                SELECT
+                    tm.ID,
+                    tm.TINDAKAN
+                FROM layanan.order_lab ol
 
-            // Jika tidak ditemukan, tetap buat dummy ID untuk testing
-            $tindakanId = $tindakanMedis->ID;
+                JOIN pendaftaran.kunjungan k
+                    ON k.REF = ol.NOMOR
 
-            $insertData = [];
-            foreach ($request->hasil_list as $row) {
-                $insertData[] = [
-                    'id'                 => (string)$idCounter,
-                    'tindakan_medis'     => $tindakanId,
-                    'parameter_tindakan' => $row['parameter_id'],
-                    'hasil'              => $row['hasil'],
-                    'nilai_normal'       => $row['nilai_normal'] ?? null,
-                    'satuan'             => $row['satuan'] ?? null,
-                    'keterangan'         => $row['keterangan'] ?? null,
-                    'oleh'               => 14,
-                ];
-                $idCounter++;
-            }
+                JOIN layanan.tindakan_medis tm
+                    ON tm.KUNJUNGAN = k.NOMOR
 
-            // Bulk insert
-            $values = [];
-            $bindings = [];
-            foreach ($insertData as $d) {
-                $values[] = "(?, ?, ?, NOW(), ?, ?, ?, ?, ?, 0, 1)";
-                $bindings[] = $d['id'];
-                $bindings[] = $d['tindakan_medis'];
-                $bindings[] = $d['parameter_tindakan'];
-                $bindings[] = $d['hasil'];
-                $bindings[] = $d['nilai_normal'];
-                $bindings[] = $d['satuan'];
-                $bindings[] = $d['keterangan'];
-                $bindings[] = $d['oleh'];
-            }
-
-            DB::insert("
-                INSERT INTO layanan.hasil_lab
-                (
-                    ID,
-                    TINDAKAN_MEDIS,
-                    PARAMETER_TINDAKAN,
-                    TANGGAL,
-                    HASIL,
-                    NILAI_NORMAL,
-                    SATUAN,
-                    KETERANGAN,
-                    OLEH,
-                    OTOMATIS,
-                    STATUS
-                )
-                VALUES " . implode(',', $values),
-                $bindings
-            );
-
-            DB::commit();
-
-            return response()->json([
-                'message'  => 'Ok',
-                'inserted' => count($insertData),
-                'status'   => 200,
-                'data'     => $insertData, // optional untuk debugging
+                WHERE ol.NOMOR = ?
+                AND ol.STATUS != 0
+                AND k.STATUS != 0
+                AND tm.STATUS != 0
+            ", [
+                $request->no_lab
             ]);
 
-        } catch (\Throwable $e) {
-            DB::rollBack();
+
+            // =====================================================
+            // 3. BUAT MAP TINDAKAN MEDIS
+            // =====================================================
+            //
+            // Contoh:
+            //
+            // 26090801053 => 10513
+            // 26090801054 => 10584
+            // 26090801055 => 10586
+            // 26090801056 => 20456
+            //
+            $validTindakan = collect($tindakanMedisList)
+                ->keyBy(function ($item) {
+                    return (string) $item->ID;
+                });
+
+
+            // =====================================================
+            // 4. CEK HASIL YANG DIKIRIM
+            // =====================================================
+            $inserted = 0;
+            $updated = 0;
+
+            $resultData = [];
+
+
+            foreach ($request->hasil_list as $row) {
+
+                $tindakanId = (string) $row['tindakan_medis'];
+
+                $parameterId = (int) $row['parameter_id'];
+
+                $hasil = (string) $row['hasil'];
+
+                $nilaiNormal = $row['nilai_normal'] ?? null;
+
+                $satuan = $row['satuan'] ?? null;
+
+                $keterangan = $row['keterangan'] ?? null;
+
+
+                // =================================================
+                // 5. PASTIKAN TINDAKAN MEDIS MILIK NO LAB
+                // =================================================
+                if (!$validTindakan->has($tindakanId)) {
+
+                    throw new \Exception(
+                        'Tindakan medis '
+                        . $tindakanId
+                        . ' tidak ditemukan pada No Lab '
+                        . $request->no_lab
+                    );
+                }
+
+
+                // =================================================
+                // 6. PASTIKAN PARAMETER MEMANG MILIK TINDAKAN
+                // =================================================
+                $parameterValid = DB::table('master.parameter_tindakan_lab')
+                    ->where('ID', $parameterId)
+                    ->where('TINDAKAN', $validTindakan[$tindakanId]->TINDAKAN)
+                    ->where('STATUS', 1)
+                    ->exists();
+
+
+                if (!$parameterValid) {
+
+                    throw new \Exception(
+                        'Parameter '
+                        . $parameterId
+                        . ' tidak sesuai dengan tindakan medis '
+                        . $tindakanId
+                    );
+                }
+
+
+                // =================================================
+                // 7. CEK HASIL SUDAH ADA ATAU BELUM
+                // =================================================
+                $existing = DB::table('layanan.hasil_lab')
+                    ->select('ID')
+                    ->where('TINDAKAN_MEDIS', $tindakanId)
+                    ->where('PARAMETER_TINDAKAN', $parameterId)
+                    ->first();
+
+
+                // =================================================
+                // 8. UPDATE JIKA SUDAH ADA
+                // =================================================
+                if ($existing) {
+
+                    DB::table('layanan.hasil_lab')
+                        ->where('ID', $existing->ID)
+                        ->update([
+                            'TANGGAL' => now(),
+                            'HASIL' => $hasil,
+                            'NILAI_NORMAL' => $nilaiNormal,
+                            'SATUAN' => $satuan,
+                            'KETERANGAN' => $keterangan,
+                            'OLEH' => 14,
+                            'OTOMATIS' => 0,
+                            'STATUS' => 1,
+                        ]);
+
+
+                    $updated++;
+
+
+                    $resultData[] = [
+                        'action' => 'updated',
+                        'id' => $existing->ID,
+                        'tindakan_medis' => $tindakanId,
+                        'parameter_id' => $parameterId,
+                        'hasil' => $hasil,
+                    ];
+                }
+
+
+                // =================================================
+                // 9. INSERT JIKA BELUM ADA
+                // =================================================
+                else {
+
+                    // ID CHAR(12)
+                    $hasilId = strtoupper(
+                        substr(
+                            str_replace(
+                                '-',
+                                '',
+                                \Illuminate\Support\Str::uuid()
+                            ),
+                            0,
+                            12
+                        )
+                    );
+
+
+                    DB::table('layanan.hasil_lab')
+                        ->insert([
+                            'ID' => $hasilId,
+                            'TINDAKAN_MEDIS' => $tindakanId,
+                            'PARAMETER_TINDAKAN' => $parameterId,
+                            'TANGGAL' => now(),
+                            'HASIL' => $hasil,
+                            'NILAI_NORMAL' => $nilaiNormal,
+                            'SATUAN' => $satuan,
+                            'KETERANGAN' => $keterangan,
+                            'OLEH' => 14,
+                            'OTOMATIS' => 0,
+                            'STATUS' => 1,
+                        ]);
+
+
+                    $inserted++;
+
+
+                    $resultData[] = [
+                        'action' => 'inserted',
+                        'id' => $hasilId,
+                        'tindakan_medis' => $tindakanId,
+                        'parameter_id' => $parameterId,
+                        'hasil' => $hasil,
+                    ];
+                }
+            }
+
+
+            // =====================================================
+            // 10. COMMIT
+            // =====================================================
+            DB::commit();
+
+
+            // =====================================================
+            // 11. RESPONSE
+            // =====================================================
             return response()->json([
-                'message' => 'Insert gagal',
-                'error'   => $e->getMessage(),
-                'status'  => 500
+                'message' => 'Hasil pemeriksaan berhasil disimpan.',
+                'status' => 200,
+
+                'no_lab' => $request->no_lab,
+
+                'inserted' => $inserted,
+
+                'updated' => $updated,
+
+                'total' => $inserted + $updated,
+
+                'data' => $resultData,
+            ], 200);
+
+
+        } catch (\Throwable $e) {
+
+            // =====================================================
+            // ROLLBACK
+            // =====================================================
+            DB::rollBack();
+
+
+            \Log::error(
+                'Gagal menyimpan hasil lab',
+                [
+                    'no_lab' => $request->no_lab ?? null,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]
+            );
+
+
+            return response()->json([
+                'message' => 'Gagal menyimpan hasil lab.',
+                'status' => 500,
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
